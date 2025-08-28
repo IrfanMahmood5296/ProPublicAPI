@@ -1,0 +1,253 @@
+﻿@model ProPublicAPI.Models.NonProfitOrganizationDetail
+
+<style>
+    .table-wrapper {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    th, td {
+        white-space: nowrap;
+    }
+
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #343a40; /* match .table-dark */
+        color: white;
+        z-index: 10;
+    }
+</style>
+
+@{
+    ViewData["Title"] = "Organization Detail";
+    var org = Model.Organization;
+}
+@{
+    string FormatTaxPeriod(int? taxPrd)
+    {
+        // Convert int (e.g., 201512) to DateTime (e.g., Dec 2015)
+        var taxPrdStr = taxPrd.ToString();
+        if (taxPrdStr.Length == 6 &&
+            int.TryParse(taxPrdStr.Substring(0, 4), out int year) &&
+            int.TryParse(taxPrdStr.Substring(4, 2), out int month))
+        {
+            try
+            {
+                var date = new DateTime(year, month, 1);
+                return date.ToString("MMM yyyy"); // e.g., Dec 2015
+            }
+            catch
+            {
+                return taxPrdStr; // fallback if invalid
+            }
+        }
+
+        return taxPrdStr;
+    }
+}
+
+<h2>@org?.Name</h2>
+
+@if (org != null)
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>EIN:</strong> @org.Ein</p>
+            <p><strong>Address:</strong> @org.Address, @org.City, @org.State @org.Zipcode</p>
+            <p><strong>Exemption Number:</strong> @org.ExemptionNumber</p>
+            <p><strong>NTEE Code:</strong> @org.NteeCode</p>
+            <p><strong>Revenue:</strong> @org.RevenueAmount?.ToString("C")</p>
+            <p><strong>Assets:</strong> @org.AssetAmount?.ToString("C")</p>
+            <p><strong>Income:</strong> @org.IncomeAmount?.ToString("C")</p>
+            @* <p><strong>Data Source:</strong> @Model.DataSource</p> *@
+            <p><strong>Created At:</strong> @org.CreatedAt?.ToString("yyyy-MM-dd")</p>
+            <p><strong>Updated At:</strong> @org.UpdatedAt?.ToString("yyyy-MM-dd")</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">No organization details available.</div>
+}
+
+<hr />
+
+<h3>Filings With Data</h3>
+
+@if (Model.FilingsWithData != null && Model.FilingsWithData.Any())
+{
+    <div class="table-responsive mt-4 table-wrapper">
+        <table class="table table-bordered table-hover table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Tax Period</th>
+                    <th>Form Type</th>
+                    <th>Total Revenue</th>
+                    <th>Total Functional Expenses</th>
+                    <th>Total Assets End</th>
+                    <th>Total Liabilities End</th>
+                    <th>PDF</th>
+                    <th>Compensation %</th>
+                    <th>Investment Income</th>
+                    <th>Program Revenue</th>
+                    <th>Contributions & Gifts</th>
+                    <th>Royalty Income</th>
+                    <th>Gross Rental Real</th>
+                    <th>Gross Rental Personal</th>
+                    <th>Rental Exp Real</th>
+                    <th>Rental Exp Personal</th>
+                    <th>Net Rental Inc</th>
+                    <th>Gross Securities Sales</th>
+                    <th>Gross Other Sales</th>
+                    <th>Cost Basis Securities</th>
+                    <th>Cost Basis Other</th>
+                    <th>Gains Securities</th>
+                    <th>Gains Other</th>
+                    <th>Net Gains/Losses</th>
+                    <th>Gross Fundraising</th>
+                    <th>Fundraising Expenses</th>
+                    <th>Net Fundraising</th>
+                    <th>Gross Gaming</th>
+                    <th>Gaming Expenses</th>
+                    <th>Net Gaming</th>
+                    <th>Gross Inventory Sales</th>
+                    <th>Cost of Goods Sold</th>
+                    <th>Net Sales</th>
+                    <th>Misc Revenue</th>
+                    <th>Compensation Officers</th>
+                    <th>Other Salaries</th>
+                    <th>Payroll Tax</th>
+                    <th>Professional Fundraising</th>
+                    <th>Tax-Exempt Bonds (End)</th>
+                    <th>Secured Mortgages (End)</th>
+                    <th>Unsecured Notes (End)</th>
+                    <th>Retained Earnings (End)</th>
+                    <th>Total Net Assets (End)</th>
+                    <th>Non PF Ruling</th>
+                    <th>Gifts/Grants 170</th>
+                    <th>Revenue Levied 170</th>
+                    <th>Services Valued 170</th>
+                    <th>Gross Inc 170</th>
+                    <th>Related Receipts 170</th>
+                    <th>Total Gifts/Grants 509</th>
+                    <th>Admissions Receipts 509</th>
+                    <th>Revenue Levied 509</th>
+                    <th>Services Valued 509</th>
+                    <th>Subtotal Support 509</th>
+                    <th>Total Support 509</th>
+                    <th>EIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var filing in Model.FilingsWithData)
+                {
+                    <tr>
+                        <td>@FormatTaxPeriod(filing.TaxPrd)</td>
+                        <td>@filing.Formtype</td>
+                        <td>@filing.Totrevenue</td>
+                        <td>@filing.Totfuncexpns</td>
+                        <td>@filing.Totassetsend</td>
+                        <td>@filing.Totliabend</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(filing.PdfUrl))
+                            {
+                                <a href="@filing.PdfUrl" target="_blank">View PDF</a>
+                            }
+                        </td>
+                        <td>@filing.PctCompnsatncurrofcr</td>
+                        <td>@filing.Invstmntinc</td>
+                        <td>@filing.Totprgmrevnue</td>
+                        <td>@filing.Totcntrbgfts</td>
+                        <td>@filing.Royaltsinc</td>
+                        <td>@filing.Grsrntsreal</td>
+                        <td>@filing.Grsrntsprsnl</td>
+                        <td>@filing.Rntlexpnsreal</td>
+                        <td>@filing.Rntlexpnsprsnl</td>
+                        <td>@filing.Netrntlinc</td>
+                        <td>@filing.Grsalesecur</td>
+                        <td>@filing.Grsalesothr</td>
+                        <td>@filing.Cstbasisecur</td>
+                        <td>@filing.Cstbasisothr</td>
+                        <td>@filing.Gnlsecur</td>
+                        <td>@filing.Gnlsothr</td>
+                        <td>@filing.Netgnls</td>
+                        <td>@filing.Grsincfndrsng</td>
+                        <td>@filing.Lessdirfndrsng</td>
+                        <td>@filing.Netincfndrsng</td>
+                        <td>@filing.Grsincgaming</td>
+                        <td>@filing.Lessdirgaming</td>
+                        <td>@filing.Netincgaming</td>
+                        <td>@filing.Grsalesinvent</td>
+                        <td>@filing.Lesscstofgoods</td>
+                        <td>@filing.Netincsales</td>
+                        <td>@filing.Miscrevtot11e</td>
+                        <td>@filing.Compnsatncurrofcr</td>
+                        <td>@filing.Othrsalwages</td>
+                        <td>@filing.Payrolltx</td>
+                        <td>@filing.Profndraising</td>
+                        <td>@filing.Txexmptbndsend</td>
+                        <td>@filing.Secrdmrtgsend</td>
+                        <td>@filing.Unsecurednotesend</td>
+                        <td>@filing.Retainedearnend</td>
+                        <td>@filing.Totnetassetend</td>
+                        <td>@filing.Nonpfrea</td>
+                        <td>@filing.Gftgrntsrcvd170</td>
+                        <td>@filing.Txrevnuelevied170</td>
+                        <td>@filing.Srvcsval170</td>
+                        <td>@filing.Grsinc170</td>
+                        <td>@filing.Grsrcptsrelated170</td>
+                        <td>@filing.Totgftgrntrcvd509</td>
+                        <td>@filing.Grsrcptsadmissn509</td>
+                        <td>@filing.Txrevnuelevied509</td>
+                        <td>@filing.Srvcsval509</td>
+                        <td>@filing.Subtotsuppinc509</td>
+                        <td>@filing.Totsupp509</td>
+                        <td>@filing.Ein</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+}
+else
+{
+    <p>No filings with data available.</p>
+}
+
+<hr />
+
+<h3>Filings Without Data</h3>
+
+@if (Model.FilingsWithoutData != null && Model.FilingsWithoutData.Any())
+{
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Tax Period</th>
+                <th>Form Type</th>
+                <th>PDF</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var filing in Model.FilingsWithoutData)
+            {
+                <tr>
+                    <td>@FormatTaxPeriod(filing.TaxPrd)</td>
+                    <td>@filing.FormtypeStr</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(filing.PdfUrl))
+                        {
+                            <a href="@filing.PdfUrl" target="_blank">View PDF</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No filings without data available.</p>
+}

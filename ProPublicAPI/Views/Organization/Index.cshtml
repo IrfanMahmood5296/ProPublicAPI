@@ -1,0 +1,121 @@
+﻿@model NonProfitOrganizations
+
+@{
+    ViewData["Title"] = "Organizations";
+    var currentPage = Model.CurPage ?? 0;
+    var totalPages = Model.NumPages ?? 0;
+    var query = ViewData["Query"]?.ToString() ?? "";
+}
+
+<h2>Search Nonprofit Organizations</h2>
+
+<style>
+    .table-wrapper {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    th, td {
+        white-space: nowrap;
+    }
+
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #343a40; /* match .table-dark */
+        color: white;
+        z-index: 10;
+    }
+</style>
+
+<form method="get" asp-action="Search" asp-controller="Organization" class="row g-3 mt-3">
+    <div class="col-md-6">
+        <input type="text" name="query" class="form-control" placeholder="Search Organizations..." value="@Context.Request.Query["query"]" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(ViewBag.Error))
+{
+    <div class="alert alert-warning">@ViewBag.Error</div>
+}
+
+
+@if (Model != null && Model.Organizations != null && Model.Organizations.Any())
+{
+    <div class="table-responsive mt-4 table-wrapper">
+        <table class="table table-bordered table-hover table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Action</th>
+                    <th>Name</th>
+                    <th>Sub Name</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>EIN</th>
+                    <th>STREIN</th>
+                    <th>NTEE Code</th>
+                    <th>Raw NTEE Code</th>
+                    <th>Subseccd</th>
+                    <th>Has Subseccd</th>
+                    <th>Have Filings</th>
+                    <th>Have Extracts</th>
+                    <th>Have PDFs</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var org in Model.Organizations)
+                {
+                    <tr>
+                        <td>
+                            <a href="@Url.Action("GetOrganization", "Organization", new { ein = org.Ein })">View Details</a>
+                        </td>
+                        <td>@org.Name</td>
+                        <td>@org.SubName</td>
+                        <td>@org.City</td>
+                        <td>@org.State</td>
+                        <td>@org.Ein</td>
+                        <td>@org.Strein</td>
+                        <td>@org.NteeCode</td>
+                        <td>@org.RawNteeCode</td>
+                        <td>@org.Subseccd</td>
+                        <td>@(org.HasSubseccd == true ? "Yes" : "No")</td>
+                        <td>@org.HaveFilings</td>
+                        <td>@org.HaveExtracts</td>
+                        <td>@org.HavePdfs</td>
+                        <td>@org.Score</td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 0 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Search", new { query = query, page = currentPage - 1 })">Previous</a>
+            </li>
+
+            @for (int i = 0; i < totalPages; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Search", new { query = query, page = i })">@(i + 1)</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage >= totalPages - 1 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Search", new { query = query, page = currentPage + 1 })">Next</a>
+            </li>
+        </ul>
+    </nav>
+}
+else if (!string.IsNullOrWhiteSpace(Context.Request.Query["query"]))
+{
+    <div class="alert alert-warning mt-3">
+        No results found for "<strong>@Context.Request.Query["query"]</strong>".
+    </div>
+}
